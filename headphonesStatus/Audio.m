@@ -35,8 +35,52 @@
     {
         NSLog(@"Cannot find default output device!");
     }
+    
+    
+  
+
+    
     return outputDeviceID;
 }
+
++(Boolean)jackIsIn;
+{
+    
+    UInt32         jackIsIn;
+    UInt32 propertySize = 0;
+    OSStatus status = noErr;
+    AudioObjectPropertyAddress propertyAOPA;
+    propertyAOPA.mElement = kAudioObjectPropertyElementMaster;
+    propertyAOPA.mSelector = kAudioDevicePropertyJackIsConnected;
+    propertyAOPA.mScope = kAudioDevicePropertyScopeOutput;
+    AudioDeviceID outputDeviceID = [[self class] defaultOutputDeviceID];
+    if (outputDeviceID == kAudioObjectUnknown)
+    {
+        NSLog(@"Unknown device");
+        return NO;
+    }
+    if (!AudioObjectHasProperty(outputDeviceID, &propertyAOPA))
+    {
+        NSLog(@"No  returned jack connection info for device 0x%0x", outputDeviceID);
+        return NO;
+    }
+    propertySize = sizeof(UInt32);
+    status = AudioObjectGetPropertyData(outputDeviceID, &propertyAOPA, 0, NULL, &propertySize, &jackIsIn);
+    
+    
+    if (status)
+    {
+        NSLog(@"No  returned jack connection info for device 0x%0x", outputDeviceID);
+        return NO;
+    }
+    if (jackIsIn > 0) return YES;
+    return NO;
+    
+    
+}
+
+
+propertySize = sizeof(AudioStreamID);
 
 +(float)volume
 {

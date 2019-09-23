@@ -63,9 +63,9 @@
 				6D6AA5392338A637000C060C /* Main.storyboard */,
 				6D6AA53C2338A637000C060C /* Info.plist */,
 				6D6AA53D2338A637000C060C /* headphonesStatus.entitlements */,
+				6D6AA5462338AB84000C060C /* Audio.h */,
 				6D6AA5442338A69C000C060C /* Audio.m */,
 				6D6AA5432338A69C000C060C /* headphonesStatus-Bridging-Header.h */,
-				6D6AA5462338AB84000C060C /* Audio.h */,
 			);
 			path = headphonesStatus;
 			sourceTree = "<group>";

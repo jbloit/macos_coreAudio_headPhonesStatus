@@ -19,6 +19,7 @@
 +(float)volume;
 +(bool)mute;
 +(float)effective_volume;
++(Boolean)jackIsIn;
 @end
 
 

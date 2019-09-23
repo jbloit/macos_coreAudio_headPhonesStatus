@@ -15,7 +15,9 @@ class ViewController: NSViewController {
 
     let volume = Audio.volume()
     print(volume)
-        // Do any additional setup after loading the view.
+    let jackIsIn: Bool = Audio.jackIsIn()
+    print(jackIsIn)
+
     }
 
     override var representedObject: Any? {
