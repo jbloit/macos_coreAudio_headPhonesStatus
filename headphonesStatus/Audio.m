@@ -80,8 +80,6 @@
 }
 
 
-propertySize = sizeof(AudioStreamID);
-
 +(float)volume
 {
     Float32         outputVolume;
