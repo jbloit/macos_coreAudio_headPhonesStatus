@@ -12,6 +12,8 @@ import Cocoa
 class ViewController: NSViewController {
     
 
+    @IBOutlet weak var outputLabel: NSTextField!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -23,6 +25,7 @@ class ViewController: NSViewController {
         {
             let jackIsIn: Bool = Audio.isJackIn()
             print(jackIsIn)
+            updateHeadphonesLabel()
         }
 
     }
@@ -36,7 +39,16 @@ class ViewController: NSViewController {
     @objc func onJackChanged(_ notification:Notification) {
         // Do something now
         print("[SWIFT]JACK IN \(Audio.isJackIn())")
+        updateHeadphonesLabel()
 
+    }
+    
+    func updateHeadphonesLabel(){
+        if (Audio.isJackIn()){
+            outputLabel?.stringValue = "HEADPHONES IN"
+        } else {
+            outputLabel?.stringValue = "HEADPHONES OUT"
+        }
     }
 
 
