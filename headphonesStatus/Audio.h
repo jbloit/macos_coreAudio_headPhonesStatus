@@ -14,12 +14,15 @@
 
 @interface Audio : NSObject
 {
+
 }
+
++ (instancetype) shared;
 +(AudioDeviceID)defaultOutputDeviceID;
 +(float)volume;
 +(bool)mute;
 +(float)effective_volume;
-+(Boolean)jackIsIn;
++(bool)isJackIn;
 @end
 
 

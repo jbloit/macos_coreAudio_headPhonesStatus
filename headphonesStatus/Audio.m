@@ -1,10 +1,16 @@
 //
 //  Audio.m
-//  headphonesStatus
+//  headphonesStatus: check whether headphones are plugged in
 //
 //  Created by julien@macmini on 23/09/2019.
 //  Copyright © 2019 jbloit. All rights reserved.
 //
+// This is a quick proof oc concept.
+// Default device (ie the selected output in system prefs could be differented than built in):
+// Check this snippet https://gist.github.com/kyleneideck/67db7999a29046a26a3608edfe82c824 for iterating through devices.
+//
+
+
 
 #import <Foundation/Foundation.h>
 
@@ -12,7 +18,29 @@
 #import <Foundation/NSObject.h>
 #import "Audio.h"
 
-@implementation Audio : NSObject
+
+const AudioObjectPropertyScope kScope                   = kAudioDevicePropertyScopeOutput;
+NSString* const __nonnull      kGenericOutputDeviceName = @"Output Device";
+
+@implementation Audio : NSObject{
+    AudioObjectPropertyListenerBlock handleHeadphonesStatusChange;
+    
+}
+
+static Audio *_sharedInstance = nil;
+
+
+
+// Singleton reference
++ (instancetype)shared {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _sharedInstance = [[Audio alloc] init];
+    });
+
+    [_sharedInstance addOutputDeviceDataSourceListener];
+    return _sharedInstance;
+}
 
 +(AudioDeviceID)defaultOutputDeviceID;
 {
@@ -35,15 +63,41 @@
     {
         NSLog(@"Cannot find default output device!");
     }
-    
-    
-  
-
-    
     return outputDeviceID;
 }
 
-+(Boolean)jackIsIn;
+- (void) addOutputDeviceDataSourceListener {
+
+    NSLog(@"Adding listener");
+    OSStatus status = noErr;
+    AudioDeviceID outputDeviceID = [[self class] defaultOutputDeviceID];
+    
+    // Read the default output's datasource
+    AudioObjectPropertyAddress sourceAddr;
+    sourceAddr.mSelector = kAudioDevicePropertyDataSource;
+    sourceAddr.mScope = kAudioDevicePropertyScopeOutput;
+    sourceAddr.mElement = kAudioObjectPropertyElementMaster;
+    
+    UInt32 dataSourceId = 0;
+    UInt32 dataSourceIdSize = sizeof(UInt32);
+    status = AudioObjectGetPropertyData(outputDeviceID, &sourceAddr, 0, NULL, &dataSourceIdSize, &dataSourceId);
+    
+    
+    Audio* __weak weakSelf = self;
+    status = AudioObjectAddPropertyListenerBlock(outputDeviceID, &sourceAddr, dispatch_get_main_queue(), ^(UInt32 inNumberAddresses, const AudioObjectPropertyAddress *inAddresses) {
+        
+        [weakSelf updateHeadphonesState];
+    });
+    
+    
+    if (status){
+        NSLog(@"Failed to set property listener for device 0x%0x", outputDeviceID);
+        return ;
+    }
+    
+}
+
++(bool)isJackIn;
 {
     
     UInt32         jackIsIn;
@@ -73,11 +127,64 @@
         NSLog(@"No  returned jack connection info for device 0x%0x", outputDeviceID);
         return NO;
     }
-    if (jackIsIn > 0) return YES;
-    return NO;
-    
-    
+    if (jackIsIn > 0) {
+
+        return YES;
+    } else {
+
+        return NO;
+    }
 }
+
+- (void) updateHeadphonesState {
+    //
+    NSLog(@"HEADPONES CONNEXION STATE CHANGED");
+    
+    {
+        UInt32         jackIsIn;
+        UInt32 propertySize = 0;
+        OSStatus status = noErr;
+        AudioObjectPropertyAddress propertyAOPA;
+        propertyAOPA.mElement = kAudioObjectPropertyElementMaster;
+        propertyAOPA.mSelector = kAudioDevicePropertyJackIsConnected;
+        propertyAOPA.mScope = kAudioDevicePropertyScopeOutput;
+        AudioDeviceID outputDeviceID = [[self class] defaultOutputDeviceID];
+        if (outputDeviceID == kAudioObjectUnknown)
+        {
+            NSLog(@"Unknown device");
+            return ;
+        }
+        if (!AudioObjectHasProperty(outputDeviceID, &propertyAOPA))
+        {
+            NSLog(@"No  returned jack connection info for device 0x%0x", outputDeviceID);
+            return ;
+        }
+        propertySize = sizeof(UInt32);
+        status = AudioObjectGetPropertyData(outputDeviceID, &propertyAOPA, 0, NULL, &propertySize, &jackIsIn);
+        
+        
+        if (status)
+        {
+            NSLog(@"No  returned jack connection info for device 0x%0x", outputDeviceID);
+            return ;
+        }
+        if (jackIsIn > 0) {
+            NSLog(@"JACK IN");
+
+        } else {
+
+            NSLog(@"JACK OUT");
+        }
+        
+        // All instances will be notified
+        [[NSNotificationCenter defaultCenter]
+         postNotificationName:@"JackChanged"
+         object:self];
+        
+    }
+}
+
+
 
 
 +(float)volume

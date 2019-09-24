@@ -8,15 +8,22 @@
 
 import Cocoa
 
+
 class ViewController: NSViewController {
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-    let volume = Audio.volume()
-    print(volume)
-    let jackIsIn: Bool = Audio.jackIsIn()
-    print(jackIsIn)
+        NotificationCenter.default.addObserver(self, selector: #selector(onJackChanged(_:)), name: NSNotification.Name.init(rawValue: "JackChanged"), object: nil)
+        
+        
+        // init the singleton
+        if(Audio.shared() != nil)
+        {
+            let jackIsIn: Bool = Audio.isJackIn()
+            print(jackIsIn)
+        }
 
     }
 
@@ -25,7 +32,14 @@ class ViewController: NSViewController {
         // Update the view, if already loaded.
         }
     }
+    
+    @objc func onJackChanged(_ notification:Notification) {
+        // Do something now
+        print("[SWIFT]JACK IN \(Audio.isJackIn())")
+
+    }
 
 
+    
 }
 
